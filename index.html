@@ -1,183 +1,255 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>aviaguesser. - что за самолет</title>
-    <link rel="shortcut icon" href="https://i.pinimg.com/originals/61/a8/22/61a822d28034496f818c4c88f32e5fe7.png" type="image/x-icon">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>aviaguesser. - что за самолет?</title>
+    <link rel="shortcut icon" href="https://i.pinimg.com/originals/61/a8/22/61a822d28034496f818c4c88f32e5fe7.png"
+        type="image/x-icon">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=500;700;800&family=JetBrains+Mono:wght=500;700&display=swap');
-        
+
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background: linear-gradient(135deg, #f3f4f6 0%, #e0f2fe 100%);
+            background: radial-gradient(circle at top right, #e0f2fe 0%, #f8fafc 100%);
             -webkit-tap-highlight-color: transparent;
         }
-        .mono { font-family: 'JetBrains Mono', monospace; }
-        
-        .game-box {
-            background: #ffffff;
-            box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(0, 0, 0, 0.02);
+
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
         }
-        .smooth-bar {
-            transition: width 1s linear, background-color 0.3s ease;
+
+        .premium-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.05);
         }
-        @keyframes pulse-glow {
-            0%, 100% { transform: scale(1); box-shadow: 0 4px 20px rgba(37, 99, 235, 0.2); }
-            50% { transform: scale(1.02); box-shadow: 0 10px 30px rgba(37, 99, 235, 0.4); }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            20%,
+            60% {
+                transform: translateX(-6px);
+            }
+
+            40%,
+            80% {
+                transform: translateX(6px);
+            }
         }
-        .play-btn-anim {
-            animation: pulse-glow 2s infinite ease-in-out;
+
+        .shake-active {
+            animation: shake 0.4s ease-in-out;
+        }
+
+        @keyframes pulse-blue {
+
+            0%,
+            100% {
+                transform: scale(1);
+                box-shadow: 0 4px 20px rgba(37, 99, 235, 0.2);
+            }
+
+            50% {
+                transform: scale(1.02);
+                box-shadow: 0 10px 30px rgba(37, 99, 235, 0.4);
+            }
+        }
+
+        .btn-glow {
+            animation: pulse-blue 2.5s infinite ease-in-out;
         }
     </style>
 </head>
-<body class="text-slate-800 min-h-screen flex flex-col justify-between antialiased selection:bg-blue-100 touch-manipulation pb-[safe-area-inset-bottom]">
 
-    <div class="w-full h-1.5 bg-slate-200/60 fixed top-0 left-0 z-50">
-        <div id="global-progress" class="h-full bg-gradient-to-r from-blue-500 to-cyan-400 w-0 transition-all duration-500"></div>
+<body
+    class="text-slate-800 min-h-screen flex flex-col justify-between antialiased selection:bg-blue-100 touch-manipulation pb-[safe-area-inset-bottom]">
+
+    <div class="w-full h-1.5 bg-slate-100 fixed top-0 left-0 z-50">
+        <div id="global-progress"
+            class="h-full bg-gradient-to-r from-blue-600 to-indigo-500 w-0 transition-all duration-500"></div>
     </div>
 
-    <header class="bg-white/80 border-b border-slate-100 px-4 sm:px-6 py-4 sticky top-0 z-40 backdrop-blur-md pt-[calc(1rem+safe-area-inset-top)]">
+    <header
+        class="bg-white/70 border-b border-slate-100 px-4 sm:px-6 py-4 sticky top-0 z-40 backdrop-blur-md pt-[calc(1rem+safe-area-inset-top)]">
         <div class="max-w-md mx-auto flex justify-between items-center">
-            <button onclick="goToMenu()" class="text-lg font-extrabold tracking-tight text-blue-600 cursor-pointer lowercase">
+            <button onclick="goToMenu()"
+                class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent lowercase">
                 aviaguesser.
             </button>
-            
-            <div class="flex items-center gap-3">
-                <button onclick="openProfileModal()" class="flex items-center gap-2 bg-slate-100 hover:bg-slate-200/80 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer">
-                    🪪 <span>профиль</span>
-                </button>
-            </div>
+            <button onclick="openProfileModal()"
+                class="flex items-center gap-2 bg-slate-100/80 hover:bg-slate-200/80 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer text-slate-700">
+                🪪 <span id="nav-username">Пилот</span>
+            </button>
         </div>
     </header>
 
-    <main class="max-w-md w-full mx-auto px-4 py-4 sm:py-6 flex-grow flex items-center justify-center">
-        
-        <div id="menu-screen" class="game-box w-full rounded-[24px] sm:rounded-[32px] p-6 sm:p-8 text-center border border-slate-100/80 transition-all duration-300">
-            <div class="w-14 h-14 sm:w-16 sm:h-16 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-5 text-2xl shadow-xs">
-                ✈️
+    <main class="max-w-md w-full mx-auto px-4 py-6 flex-grow flex items-center justify-center">
+
+        <div id="menu-screen" class="premium-card w-full rounded-[32px] p-6 sm:p-8 text-center">
+            <div
+                class="inline-flex items-center justify-center bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-widest mb-4">
+                уровень <span id="menu-current-level" class="ml-1 text-blue-700">1</span>
             </div>
-            <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 mb-2">aviaguesser</h1>
-            <p class="text-xs text-slate-400 max-w-xs mx-auto mb-6 sm:mb-8">Интеллектуальный тренажер силуэтов воздушных судов. Каждый уровень содержит 15 уникальных вопросов без повторений.</p>
-            
-            <button id="start-game-btn" onclick="startImmersiveGame()" class="play-btn-anim w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 sm:py-4 px-6 rounded-2xl transition-all cursor-pointer text-center tracking-wide flex flex-col items-center justify-center gap-0.5 min-h-[56px]">
+
+            <h1 class="text-2xl font-black tracking-tight text-slate-900 mb-2">Готовы к вылету?</h1>
+            <p class="text-xs text-slate-500 max-w-xs mx-auto mb-8">Угадай модель самолета из предложенных 4 вариантов и
+                не ошибись! Каждый уровень состоит из 15 вопросов</p>
+
+            <button onclick="startImmersiveGame()"
+                class="btn-glow w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:opacity-95 text-white font-bold py-4 px-6 rounded-2xl transition-all cursor-pointer tracking-wide text-sm active:scale-[0.99]">
+                Начать ⚡
             </button>
 
-            <div class="mt-6 flex justify-center gap-6 text-[11px] font-bold text-slate-400">
-                <div>🔥 стрик: <span id="menu-streak" class="text-slate-700">0</span></div>
-                <div class="w-px h-3 bg-slate-200 my-auto"></div>
-                <div>🏆 рекорд: <span id="menu-best" class="text-slate-700">0</span></div>
+            <div
+                class="mt-8 grid grid-cols-2 gap-4 bg-slate-50/60 p-3 rounded-2xl border border-slate-100 text-xs font-bold text-slate-500">
+                <div class="text-center border-r border-slate-200/60">
+                    <span class="text-[10px] text-slate-400 block font-medium mb-0.5">Текущий стрик</span>
+                    <span id="menu-streak" class="text-slate-800 text-sm font-black">0</span>
+                </div>
+                <div class="text-center">
+                    <span class="text-[10px] text-slate-400 block font-medium mb-0.5">Лучший рекорд</span>
+                    <span id="menu-best" class="text-slate-800 text-sm font-black">0</span>
+                </div>
             </div>
         </div>
 
-        <div id="game-screen" class="hidden game-box w-full rounded-[24px] sm:rounded-[32px] p-4 sm:p-5 border border-slate-100/80 transition-all duration-300">
-            
-            <div class="flex justify-between items-center mb-3 sm:mb-4">
+        <div id="game-screen" class="hidden premium-card w-full rounded-[32px] p-4 sm:p-5">
+            <div class="flex justify-between items-center mb-4">
                 <div class="flex flex-col">
-                    <span id="level-counter" class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Загрузка...</span>
-                    <span id="rank-badge" class="text-[11px] text-blue-600 font-bold">Курсант</span>
+                    <span id="level-counter"
+                        class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Загрузка...</span>
+                    <span id="rank-badge" class="text-xs text-blue-600 font-extrabold">Курсант</span>
                 </div>
-                
-                <div class="flex items-center gap-1 bg-rose-50 text-rose-600 px-2.5 py-1 rounded-xl border border-rose-100/60 font-bold text-xs">
+                <div
+                    class="flex items-center gap-1.5 bg-rose-50 border border-rose-100 text-rose-600 px-3 py-1.5 rounded-xl font-bold text-xs shadow-xs">
                     <span>⏱️</span>
                     <span id="timer-text" class="mono">15s</span>
                 </div>
             </div>
 
-            <div class="relative aspect-[4/3] w-full rounded-2xl overflow-hidden bg-slate-50 border border-slate-100 mb-3 sm:mb-4 shadow-inner">
-                <div id="image-loader" class="absolute inset-0 flex items-center justify-center bg-slate-50 z-10">
-                    <div class="w-6 h-6 border-2 border-blue-100 border-t-blue-500 rounded-full animate-spin"></div>
+            <div id="image-wrapper"
+                class="relative aspect-[4/3] w-full rounded-2xl overflow-hidden bg-slate-900 border border-slate-100 mb-4 shadow-sm transition-transform">
+                <div id="image-loader"
+                    class="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/90 z-10 text-white gap-2">
+                    <div class="w-6 h-6 border-2 border-slate-800 border-t-blue-500 rounded-full animate-spin"></div>
+                    <span class="text-[9px] text-slate-400 font-mono tracking-widest uppercase">Ищу самолет для
+                        тебя</span>
                 </div>
-                <img id="plane-image" src="" alt="Target" class="w-full h-full object-cover opacity-0 transition-all duration-300" />
-                
-                <div class="absolute bottom-0 left-0 w-full h-1 bg-slate-100">
-                    <div id="timer-bar" class="h-full bg-blue-600 w-full smooth-bar"></div>
+                <img id="plane-image" src="" alt="Target Plane"
+                    class="w-full h-full object-cover opacity-0 transition-all duration-300" />
+                <div
+                    class="absolute bottom-2 right-2 bg-slate-900/70 backdrop-blur-md text-[9px] text-white/90 px-2.5 py-1 rounded-lg font-mono pointer-events-none shadow-xs">
+                    photos from web
                 </div>
-            </div>
-
-            <div class="flex justify-between items-center bg-slate-50 border border-slate-100 rounded-xl p-2 mb-3 sm:mb-4">
-                <span class="text-[10px] font-bold text-slate-400 pl-1">Утилиты:</span>
-                <div class="flex gap-1.5">
-                    <button id="lifeline-5050" class="bg-white text-slate-700 text-[11px] font-bold py-1.5 px-3 rounded-lg border border-slate-200 shadow-2xs transition-all cursor-pointer disabled:opacity-30 min-h-[32px]">
-                        💥 50/50
-                    </button>
-                    <button id="lifeline-time" class="bg-white text-slate-700 text-[11px] font-bold py-1.5 px-3 rounded-lg border border-slate-200 shadow-2xs transition-all cursor-pointer disabled:opacity-30 min-h-[32px]">
-                        ⏳ +10s
-                    </button>
+                <div class="absolute bottom-0 left-0 w-full h-1 bg-slate-800/40">
+                    <div id="timer-bar" class="h-full bg-blue-600 w-full transition-all ease-linear"></div>
                 </div>
             </div>
 
-            <div id="options-container" class="space-y-2 max-h-[40vh] overflow-y-auto pr-0.5">
+            <div class="flex justify-between items-center bg-slate-50 border border-slate-100/80 rounded-2xl p-2 mb-4">
+                <span class="text-[10px] font-extrabold text-slate-400 pl-2 uppercase tracking-wider">Помощь:</span>
+                <div class="flex gap-2">
+                    <button id="lifeline-5050"
+                        class="bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold py-1.5 px-3.5 rounded-xl border border-slate-200 transition-all cursor-pointer disabled:opacity-30 shadow-xs">💥
+                        50/50</button>
+                    <button id="lifeline-time"
+                        class="bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold py-1.5 px-3.5 rounded-xl border border-slate-200 transition-all cursor-pointer disabled:opacity-30 shadow-xs">⏳
+                        +10s</button>
+                </div>
             </div>
 
-            <button id="next-btn" class="hidden w-full mt-4 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-3.5 px-4 rounded-xl transition-all cursor-pointer text-center active:scale-[0.99] min-h-[44px]">
-                Далее на взлет ⚡
+            <div id="options-container" class="space-y-2.5"></div>
+
+            <button id="next-btn"
+                class="hidden w-full mt-4 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-4 px-4 rounded-xl transition-all cursor-pointer text-center shadow-lg active:scale-[0.99]">
+                Следующий ⚡
             </button>
         </div>
 
-        <div id="congrats-screen" class="hidden game-box w-full rounded-[24px] sm:rounded-[32px] p-6 sm:p-8 text-center border border-slate-100/80 transition-all duration-300">
-            <div class="w-16 h-16 sm:w-20 sm:h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-5 sm:mb-6 text-2xl sm:text-3xl shadow-xs border border-emerald-100 animate-bounce">
-                🎖️
-            </div>
-            <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 mb-1">Уровень Завершен!</h2>
-            <p id="congrats-subtitle" class="text-xs text-slate-500 mb-6">Вы успешно выполнили полётную миссию.</p>
-            
-            <div class="bg-slate-50 border border-slate-100 rounded-2xl p-4 mb-6 sm:mb-8 grid grid-cols-2 gap-4">
-                <div>
-                    <span class="text-[10px] font-bold text-slate-400 block uppercase">Пройден уровень</span>
-                    <span id="congrats-level" class="text-lg sm:text-xl font-extrabold text-blue-600">1</span>
+        <div id="congrats-screen" class="hidden premium-card w-full rounded-[32px] p-6 text-center">
+            <div
+                class="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-5 text-3xl border border-emerald-100 shadow-sm">
+                🎖️</div>
+            <h2 class="text-2xl font-black text-slate-900 mb-1">Уровень Завершен!</h2>
+            <p class="text-xs text-slate-400 mb-6">Вы успешно завершили этот уровень</p>
+
+            <div class="bg-slate-50 border border-slate-100 rounded-2xl p-4 mb-6 grid grid-cols-2 gap-4">
+                <div class="border-r border-slate-200/60">
+                    <span class="text-[10px] font-bold text-slate-400 block uppercase">Пройден</span>
+                    <span id="congrats-level" class="text-xl font-black text-blue-600">1</span>
                 </div>
                 <div>
                     <span class="text-[10px] font-bold text-slate-400 block uppercase">Всего очков</span>
-                    <span id="congrats-score" class="text-lg sm:text-xl font-extrabold text-emerald-600">0</span>
+                    <span id="congrats-score" class="text-xl font-black text-emerald-600">0</span>
                 </div>
             </div>
 
-            <button onclick="goToNextLevel()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 sm:py-4 px-6 rounded-2xl transition-all cursor-pointer text-xs sm:text-sm tracking-wide shadow-md min-h-[48px]">
-                Открыть следующий уровень 🛫
+            <button onclick="goToNextLevel()"
+                class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold py-4 px-6 rounded-xl transition-all cursor-pointer text-xs shadow-md active:scale-[0.99]">
+                Перейти на следующий уровень 🛫
             </button>
         </div>
 
     </main>
 
-    <div id="profile-modal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-sm rounded-[24px] sm:rounded-[28px] p-5 sm:p-6 shadow-xl border border-slate-100 mx-auto max-h-[90vh] overflow-y-auto">
+    <div id="username-modal"
+        class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="premium-card w-full max-w-sm rounded-[32px] p-6 shadow-2xl text-center border border-white">
+            <div
+                class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mx-auto mb-4 text-xl shadow-xs">
+                🧑‍✈️</div>
+            <h3 class="text-xl font-black text-slate-900 mb-2">Регистрация пилота</h3>
+            <p class="text-xs text-slate-400 mb-5">Введите ваш позывной (никнейм)</p>
+
+            <input type="text" id="username-input" maxlength="15" placeholder="Например, pilot"
+                class="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100 text-slate-800 text-sm font-bold px-4 py-3.5 rounded-xl transition-all mb-4 outline-none text-center">
+
+            <button onclick="saveUsername()"
+                class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 rounded-xl text-xs transition-all cursor-pointer active:scale-[0.99]">
+                Подтвердить
+            </button>
+        </div>
+    </div>
+
+    <div id="profile-modal"
+        class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+        <div class="premium-card w-full max-w-sm rounded-[24px] p-5 shadow-xl mx-auto">
             <div class="flex justify-between items-center mb-5">
-                <h3 class="text-sm font-extrabold text-slate-900 uppercase tracking-wider">🪪 Ваша лицензия</h3>
-                <button onclick="closeProfileModal()" class="text-slate-400 hover:text-slate-600 text-sm font-bold cursor-pointer p-1">закрыть</button>
+                <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest">🪪 Лицензия пилота</h3>
+                <button onclick="closeProfileModal()"
+                    class="text-slate-400 hover:text-slate-600 text-xs font-bold cursor-pointer">закрыть</button>
             </div>
-            
             <div class="space-y-3 mb-6">
-                <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 flex justify-between items-center">
-                    <span class="text-xs text-slate-400">Ранг лицензии</span>
-                    <span id="prof-rank" class="text-xs font-bold text-blue-600">Курсант</span>
+                <div class="bg-slate-50 p-3.5 rounded-xl flex justify-between items-center border border-slate-100">
+                    <span class="text-xs text-slate-400 font-medium">Позывной пилота</span>
+                    <span id="prof-username" class="text-xs font-black text-slate-800">-</span>
+                </div>
+                <div class="bg-slate-50 p-3.5 rounded-xl flex justify-between items-center border border-slate-100">
+                    <span class="text-xs text-slate-400 font-medium">Статус квалификации</span>
+                    <span id="prof-rank" class="text-xs font-black text-blue-600">-</span>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
-                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
-                        <span class="text-[10px] text-slate-400 block">Очки сессии</span>
-                        <span id="prof-score" class="text-sm font-extrabold text-slate-800">0</span>
-                    </div>
-                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
-                        <span class="text-[10px] text-slate-400 block">Макс. комбо</span>
-                        <span id="prof-best" class="text-sm font-extrabold text-slate-800">0</span>
-                    </div>
+                    <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-100"><span
+                            class="text-[10px] text-slate-400 block font-medium mb-0.5">Очки опыта</span><span
+                            id="prof-score" class="text-sm font-black text-slate-800">0</span></div>
+                    <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-100"><span
+                            class="text-[10px] text-slate-400 block font-medium mb-0.5">Макс. комбо</span><span
+                            id="prof-best" class="text-sm font-black text-slate-800">0</span></div>
                 </div>
             </div>
-
-            <div>
-                <div class="flex justify-between text-[11px] font-bold text-slate-500 mb-1.5">
-                    <span id="prof-ratio">Уровень 1</span>
-                    <span>Прогресс миссии</span>
-                </div>
-                <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200/50">
-                    <div id="prof-progress-bar" class="h-full bg-gradient-to-r from-blue-500 to-indigo-500 w-0 transition-all duration-300"></div>
-                </div>
-            </div>
-
-            <button onclick="resetGlobalHistory()" class="w-full mt-5 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold py-2.5 px-4 rounded-xl text-[11px] transition-all cursor-pointer min-h-[36px]">
-                Обнулить мою лицензию 🔄
-            </button>
+            <button onclick="resetGlobalHistory()"
+                class="w-full bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold py-3 rounded-xl text-[11px] transition-all cursor-pointer">Сбросить
+                🔄</button>
         </div>
     </div>
 
@@ -186,236 +258,240 @@
     </footer>
 
     <script>
-        const masterAircraftDatabase = [
-            "Boeing 737-800", "Boeing 777-300ER", "Boeing 787 Dreamliner", "Boeing 747-400", "Boeing 757-200", "Boeing 767-300", "Boeing 727", "Boeing 737 MAX 9", "Boeing 747-8",
-            "Airbus A320neo", "Airbus A350-900", "Airbus A380-800", "Airbus A330-300", "Airbus A220-300", "Airbus A340-600", "Airbus A319", "Airbus A321xlr", "Airbus A300",
-            "Embraer E195-E2", "Embraer E175", "Bombardier CRJ-900", "Sukhoi Superjet 100", "McDonnell Douglas MD-11", "ATR 72", "Bombardier Dash 8", "Gulfstream G650", "Cessna Citation X",
-            "Concorde", "Tupolev Tu-154", "Tupolev Tu-134", "Ilyushin Il-76", "Antonov An-124", "Cessna 172 Skyhawk", "Ilyushin Il-62", "Tupolev Tu-144", "Yakovlev Yak-42",
-            "F-22 Raptor", "F-16 Fighting Falcon", "Su-27 Flanker", "Mig-29 Fulcrum", "Eurofighter Typhoon", "F-35 Lightning II", "Su-57", "B-2 Spirit", "A-10 Thunderbolt II"
+        const dynamicBrands = {
+            "Boeing": ["737-800", "737 MAX 8", "747-400", "777-300ER", "787-9", "757-200"],
+            "Airbus": ["A320neo", "A321neo", "A330-900", "A350-900", "A380-800", "A220-300"],
+            "Embraer": ["E195-E2", "E175", "ERJ-145"],
+            "Bombardier": ["CRJ-900", "CRJ-200"],
+            "ATR": ["72-600", "42-600"]
+        };
+
+        const cleanFallbacks = [
+            { name: "Boeing 787-9", url: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Uzbekistan_Airways_Boeing_787-9_Dreamliner_UK87002_FRA_2017-03-29_02.jpg/800px-Uzbekistan_Airways_Boeing_787-9_Dreamliner_UK87002_FRA_2017-03-29_02.jpg" },
+            { name: "Airbus A320neo", url: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Uzbekistan_Airways%2C_UK32021%2C_Airbus_A320-251N_%2849581895781%29.jpg/800px-Uzbekistan_Airways%2C_UK32021%2C_Airbus_A320-251N_%2849581895781%29.jpg" },
+            { name: "Boeing 767-300ER", url: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Uzbekistan_Airways_B767-33P_ER_UK-67004_%2824364239853%29.jpg/800px-Uzbekistan_Airways_B767-33P_ER_UK-67004_%2824364239853%29.jpg" }
         ];
 
         let globalLevel = localStorage.getItem('as_infinite_level') ? parseInt(localStorage.getItem('as_infinite_level')) : 1;
         let score = localStorage.getItem('as_infinite_score') ? parseInt(localStorage.getItem('as_infinite_score')) : 0;
         let bestStreak = localStorage.getItem('as_playful_best_streak') ? parseInt(localStorage.getItem('as_playful_best_streak')) : 0;
-        
-        let excludedPlanes = JSON.parse(localStorage.getItem('as_excluded_planes')) || [];
+        let username = localStorage.getItem('as_pilot_username') || "";
 
         const QUESTIONS_PER_LEVEL = 15;
-        let currentLevelPool = []; 
-        let currentQuestionIndex = 0; 
+        let currentQuestionIndex = 0;
         let currentTargetAircraft = "";
+        let currentBrandContext = "";
         let streak = 0;
-        
-        let baseTimeForLevel = 15;
         let timeLeft = 15;
         let timerInterval;
         let hasAnswered = false;
         let used5050 = false;
         let usedTime = false;
 
+        let usedImagesLog = [];
+
+        let preloadedQuestionsQueue = [];
+        const QUEUE_MAX_SIZE = 3;
+
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        
         function playSound(type) {
             try {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.connect(gain); gain.connect(audioCtx.destination);
+                const osc = audioCtx.createOscillator(); const g = audioCtx.createGain();
+                osc.connect(g); g.connect(audioCtx.destination);
                 if (type === 'success') {
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
-                    osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.05);
-                    gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
-                    osc.start(); osc.stop(audioCtx.currentTime + 0.2);
-                } else if (type === 'error') {
-                    osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(220.00, audioCtx.currentTime);
-                    gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+                    osc.frequency.setValueAtTime(523, audioCtx.currentTime); g.gain.setValueAtTime(0.02, audioCtx.currentTime);
+                    osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+                } else {
+                    osc.type = 'triangle'; osc.frequency.setValueAtTime(120, audioCtx.currentTime); g.gain.setValueAtTime(0.06, audioCtx.currentTime);
                     osc.start(); osc.stop(audioCtx.currentTime + 0.2);
                 }
-            } catch(e) {}
+            } catch (e) { }
         }
 
-        function shuffle(array) { return [...array].sort(() => Math.random() - 0.5); }
-
-        function showScreen(screenId) {
-            ['menu-screen', 'game-screen', 'congrats-screen'].forEach(id => {
-                document.getElementById(id).classList.add('hidden');
-            });
-            document.getElementById(screenId).classList.remove('hidden');
+        function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
+        function showScreen(id) {
+            ['menu-screen', 'game-screen', 'congrats-screen'].forEach(s => document.getElementById(s).classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
         }
 
-        function startImmersiveGame() {
-            if (currentLevelPool.length === 0 || currentQuestionIndex >= QUESTIONS_PER_LEVEL) {
-                generateLevelPool(); 
+        window.addEventListener('DOMContentLoaded', () => {
+            if (!username) {
+                document.getElementById('username-modal').classList.remove('hidden');
+            } else {
+                updateGlobalUIElements();
             }
+            maintainPreloadQueue();
+        });
+
+        function saveUsername() {
+            const input = document.getElementById('username-input').value.trim();
+            if (input.length < 2) return;
+            username = input;
+            localStorage.setItem('as_pilot_username', username);
+            document.getElementById('username-modal').classList.add('hidden');
+            updateGlobalUIElements();
+        }
+
+        async function generateSingleQuestionData() {
+            const brands = Object.keys(dynamicBrands);
+            const brand = brands[Math.floor(Math.random() * brands.length)];
+            const models = dynamicBrands[brand];
+            const model = models[Math.floor(Math.random() * models.length)];
+            const targetName = `${brand} ${model}`;
+
+            let imgUrl = "";
+            try {
+                const searchQuery = `"${brand} ${model}" -cockpit -interior -cabin -seat -inside`;
+                const url = `https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=file:${encodeURIComponent(searchQuery)}&gsrlimit=10&prop=imageinfo&iiprop=url&iiurlwidth=800&format=json&origin=*`;
+
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data.query && data.query.pages) {
+                    const pages = Object.values(data.query.pages);
+                    const validPages = pages.filter(p => p.imageinfo && p.imageinfo[0] && /\.(jpg|jpeg|png)$/i.test(p.imageinfo[0].url));
+                    if (validPages.length > 0) {
+                        imgUrl = validPages[Math.floor(Math.random() * validPages.length)].imageinfo[0].url;
+                    }
+                }
+            } catch (e) { }
+
+            if (!imgUrl) {
+                const fallback = cleanFallbacks[Math.floor(Math.random() * cleanFallbacks.length)];
+                return {
+                    target: fallback.name,
+                    brand: fallback.name.split(' ')[0],
+                    url: fallback.url
+                };
+            }
+
+            return { target: targetName, brand: brand, url: imgUrl };
+        }
+
+        async function maintainPreloadQueue() {
+            while (preloadedQuestionsQueue.length < QUEUE_MAX_SIZE) {
+                const qData = await generateSingleQuestionData();
+
+                const imgCache = new Image();
+                imgCache.src = qData.url;
+
+                preloadedQuestionsQueue.push(qData);
+            }
+        }
+
+        async function startImmersiveGame() {
+            currentQuestionIndex = 0;
             updateGlobalUIElements();
             showScreen('game-screen');
-            loadNextSessionTarget();
-        }
 
-        function generateLevelPool() {
-            currentQuestionIndex = 0;
-            
-            let available = masterAircraftDatabase.filter(p => !excludedPlanes.includes(p));
-            
-            if (available.length < QUESTIONS_PER_LEVEL) {
-                excludedPlanes = [];
-                localStorage.removeItem('as_excluded_planes');
-                available = masterAircraftDatabase;
+            if (preloadedQuestionsQueue.length === 0) {
+                document.getElementById('image-loader').classList.remove('opacity-0');
+                await maintainPreloadQueue();
             }
-
-            available = shuffle(available);
-            currentLevelPool = available.slice(0, QUESTIONS_PER_LEVEL); 
-
-            excludedPlanes.push(...currentLevelPool);
-            localStorage.setItem('as_excluded_planes', JSON.stringify(excludedPlanes));
+            loadNextQuestion();
         }
 
-        function updateGlobalUIElements() {
-            document.getElementById('menu-streak').textContent = streak;
-            document.getElementById('menu-best').textContent = bestStreak;
-            
-            const startBtn = document.getElementById('start-game-btn');
-            if (currentQuestionIndex > 0 && currentQuestionIndex < QUESTIONS_PER_LEVEL) {
-                startBtn.innerHTML = `
-                    <span class="text-sm">Продолжить Уровень ${globalLevel} 🚀</span>
-                    <span class="text-[10px] opacity-80 font-normal">Вопрос ${currentQuestionIndex + 1} из 15 // ${score} очков</span>
-                `;
-            } else {
-                startBtn.innerHTML = `
-                    <span class="text-sm">Взлететь на Уровень ${globalLevel} 🚀</span>
-                    <span class="text-[10px] opacity-80 font-normal">${score} очков на счету</span>
-                `;
-            }
-
-            const pct = (currentQuestionIndex / QUESTIONS_PER_LEVEL) * 100;
-            document.getElementById('global-progress').style.width = `${pct}%`;
-        }
-
-        function loadNextSessionTarget() {
-            hasAnswered = false;
-            used5050 = false;
-            usedTime = false;
-
-            baseTimeForLevel = Math.max(15 - Math.floor(globalLevel / 4), 6);
-            timeLeft = baseTimeForLevel;
+        function loadNextQuestion() {
+            hasAnswered = false; used5050 = false; usedTime = false;
+            timeLeft = Math.max(15 - Math.floor(globalLevel / 3), 7);
 
             document.getElementById('lifeline-5050').disabled = false;
             document.getElementById('lifeline-time').disabled = false;
             document.getElementById('next-btn').classList.add('hidden');
-            document.getElementById('image-loader').classList.remove('opacity-0');
-            
-            document.getElementById('level-counter').textContent = `Уровень ${globalLevel} • Вопрос ${currentQuestionIndex + 1}/${QUESTIONS_PER_LEVEL}`;
 
-            const currentModel = currentLevelPool[currentQuestionIndex];
+            const currentQuestion = preloadedQuestionsQueue.shift();
 
-            fetch(`https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(currentModel)}&prop=pageimages&format=json&pithumbsize=800&origin=*`)
-                .then(res => res.json())
-                .then(data => {
-                    const pages = data.query.pages;
-                    const pageId = Object.keys(pages)[0];
+            currentTargetAircraft = currentQuestion.target;
+            currentBrandContext = currentQuestion.brand;
 
-                    if (pageId !== "-1" && pages[pageId].thumbnail) {
-                        currentTargetAircraft = pages[pageId].title;
-                        const img = document.getElementById('plane-image');
-                        img.src = pages[pageId].thumbnail.source;
-                        img.onload = () => {
-                            document.getElementById('image-loader').classList.add('opacity-0');
-                            img.classList.remove('opacity-0');
-                            buildSmartOptions();
-                            startTimer();
-                        };
-                    } else {
-                        let fallback = shuffle(masterAircraftDatabase.filter(x => !currentLevelPool.includes(x)))[0];
-                        currentLevelPool[currentQuestionIndex] = fallback;
-                        loadNextSessionTarget();
-                    }
-                }).catch(() => {
-                    loadNextSessionTarget();
-                });
+            const img = document.getElementById('plane-image');
+            img.src = currentQuestion.url;
+
+            img.onload = () => {
+                document.getElementById('image-loader').classList.add('opacity-0');
+                img.classList.remove('opacity-0');
+                buildDynamicOptionsMarkup();
+                startTimer();
+            };
+
+            document.getElementById('level-counter').textContent = `Вопрос ${currentQuestionIndex + 1}/${QUESTIONS_PER_LEVEL}`;
+
+            maintainPreloadQueue();
         }
 
-        function buildSmartOptions() {
+        function buildDynamicOptionsMarkup() {
             const container = document.getElementById('options-container');
             container.innerHTML = '';
 
-            let brand = currentTargetAircraft.split(' ')[0];
-            let fakes = masterAircraftDatabase.filter(item => 
-                item.toLowerCase() !== currentTargetAircraft.toLowerCase() && 
-                item.toLowerCase().startsWith(brand.toLowerCase())
-            );
+            const allModelsForBrand = dynamicBrands[currentBrandContext].map(m => `${currentBrandContext} ${m}`);
+            let wrongChoices = allModelsForBrand.filter(m => m !== currentTargetAircraft);
 
-            if (fakes.length < 3 || globalLevel < 3) {
-                let general = masterAircraftDatabase.filter(item => item.toLowerCase() !== currentTargetAircraft.toLowerCase());
-                fakes = [...fakes, ...shuffle(general)];
+            wrongChoices = shuffle(wrongChoices).slice(0, 3);
+
+            while (wrongChoices.length < 3) {
+                let keys = Object.keys(dynamicBrands).filter(k => k !== currentBrandContext);
+                let randomBrand = keys[Math.floor(Math.random() * keys.length)];
+                let randomModel = dynamicBrands[randomBrand][Math.floor(Math.random() * dynamicBrands[randomBrand].length)];
+                wrongChoices.push(`${randomBrand} ${randomModel}`);
             }
 
-            let finalFakes = shuffle(fakes).slice(0, 3);
-            const choiceSet = shuffle([currentTargetAircraft, ...finalFakes]);
+            const mixedChoices = shuffle([currentTargetAircraft, ...wrongChoices]);
 
-            choiceSet.forEach(option => {
+            mixedChoices.forEach(choice => {
                 const btn = document.createElement('button');
-                btn.className = "w-full text-left bg-white hover:bg-slate-50 border border-slate-200/80 text-slate-800 px-4 py-3 rounded-xl text-xs font-bold transition-all cursor-pointer flex justify-between items-center shadow-2xs active:scale-[0.995] min-h-[44px]";
-                btn.setAttribute('data-aircraft', option);
-                btn.innerHTML = `<span>${option}</span><span class="text-[10px] text-slate-300 font-mono">// выбрать</span>`;
-                btn.onclick = () => verifyChoice(btn, option);
+                btn.className = "w-full text-left bg-gradient-to-r from-white to-slate-50/50 hover:from-blue-50/30 hover:to-indigo-50/30 border border-slate-200 text-slate-800 px-4 py-3.5 rounded-2xl text-xs font-bold transition-all cursor-pointer flex justify-between items-center min-h-[48px] shadow-2xs active:scale-[0.99]";
+                btn.setAttribute('data-target', choice);
+                btn.innerHTML = `<span>${choice}</span><span class="text-[10px] text-slate-300 font-mono tracking-wider">// select</span>`;
+                btn.onclick = () => checkAnswer(btn, choice);
                 container.appendChild(btn);
             });
         }
 
         function startTimer() {
             clearInterval(timerInterval);
-            updateTimerBar();
+            updateTimerBarUI();
             timerInterval = setInterval(() => {
                 timeLeft--;
-                updateTimerBar();
+                updateTimerBarUI();
                 if (timeLeft <= 0) {
                     clearInterval(timerInterval);
-                    handleTimeOut();
+                    timeoutTrigger();
                 }
             }, 1000);
         }
 
-        function updateTimerBar() {
+        function updateTimerBarUI() {
             document.getElementById('timer-text').textContent = `${timeLeft}s`;
-            const max = usedTime ? (baseTimeForLevel + 10) : baseTimeForLevel;
-            const pct = (timeLeft / max) * 100;
-            const bar = document.getElementById('timer-bar');
-            bar.style.width = `${pct}%`;
-            bar.className = timeLeft <= 4 ? "h-full bg-rose-500 smooth-bar" : "h-full bg-blue-600 smooth-bar";
+            const maxTime = usedTime ? (Math.max(15 - Math.floor(globalLevel / 3), 7) + 10) : Math.max(15 - Math.floor(globalLevel / 3), 7);
+            document.getElementById('timer-bar').style.width = `${(timeLeft / maxTime) * 100}%`;
         }
 
-        function verifyChoice(selectedBtn, chosen) {
+        function checkAnswer(btn, value) {
             if (hasAnswered) return;
             hasAnswered = true;
             clearInterval(timerInterval);
 
             document.getElementById('lifeline-5050').disabled = true;
             document.getElementById('lifeline-time').disabled = true;
-            const buttons = document.getElementById('options-container').getElementsByTagName('button');
+            const allBtns = document.getElementById('options-container').getElementsByTagName('button');
+            const wrapper = document.getElementById('image-wrapper');
 
-            if (chosen === currentTargetAircraft) {
+            if (value === currentTargetAircraft) {
                 playSound('success');
-                selectedBtn.className = "w-full text-left bg-emerald-50 border border-emerald-300 text-emerald-700 px-4 py-3 rounded-xl text-xs font-bold flex justify-between items-center min-h-[44px]";
-                selectedBtn.innerHTML = `<span>${chosen}</span> <span class="text-[10px] font-bold text-emerald-500">🎯 угадано</span>`;
-                
-                score += 10 + Math.floor(streak / 3);
+                btn.className = "w-full text-left bg-gradient-to-r from-emerald-50 to-teal-50/60 border-2 border-emerald-400 text-emerald-800 px-4 py-3.5 rounded-2xl text-xs font-extrabold flex justify-between items-center min-h-[48px] shadow-sm animate-pulse";
+                btn.innerHTML = `<span>${value}</span> <span class="text-[10px] bg-emerald-500 text-white px-1.5 py-0.5 rounded-md">🎯 верно</span>`;
+                score += 15;
                 streak++;
                 localStorage.setItem('as_infinite_score', score);
             } else {
                 playSound('error');
-                selectedBtn.className = "w-full text-left bg-rose-50 border border-rose-300 text-rose-600 px-4 py-3 rounded-xl text-xs font-bold flex justify-between items-center min-h-[44px]";
-                selectedBtn.innerHTML = `<span>${chosen}</span> <span class="text-[10px] font-bold text-rose-400">ошибка</span>`;
-                streak = 0;
-                revealRightAnswer(buttons);
-            }
+                wrapper.classList.add('shake-active');
+                setTimeout(() => wrapper.classList.remove('shake-active'), 400);
 
-            for (let b of buttons) {
-                if (b !== selectedBtn && b.getAttribute('data-aircraft') !== currentTargetAircraft) {
-                    b.className = "w-full text-left bg-slate-50/50 border border-slate-100 text-slate-300 px-4 py-3 rounded-xl text-xs opacity-40 cursor-not-allowed min-h-[44px]";
-                }
+                btn.className = "w-full text-left bg-gradient-to-r from-rose-50 to-red-50/60 border-2 border-rose-400 text-rose-700 px-4 py-3.5 rounded-2xl text-xs font-extrabold flex justify-between items-center min-h-[48px] shadow-sm";
+                btn.innerHTML = `<span>${value}</span> <span class="text-[10px] bg-rose-500 text-white px-1.5 py-0.5 rounded-md">💥 ошибка</span>`;
+                streak = 0;
+                highlightCorrect(allBtns);
             }
 
             if (streak > bestStreak) {
@@ -423,153 +499,107 @@
                 localStorage.setItem('as_playful_best_streak', bestStreak);
             }
 
-            const nextBtn = document.getElementById('next-btn');
-            if (currentQuestionIndex === QUESTIONS_PER_LEVEL - 1) {
-                nextBtn.textContent = "Завершить миссию уровня 🎖️";
-            } else {
-                nextBtn.textContent = "Далее на взлет ⚡";
-            }
-
-            currentQuestionIndex++; 
-            updateGlobalUIElements();
-            nextBtn.classList.remove('hidden');
-        }
-
-        function handleTimeOut() {
-            hasAnswered = true;
-            streak = 0;
-            playSound('error');
-
-            document.getElementById('lifeline-5050').disabled = true;
-            document.getElementById('lifeline-time').disabled = true;
-
-            const buttons = document.getElementById('options-container').getElementsByTagName('button');
-            revealRightAnswer(buttons);
-
-            for (let b of buttons) {
-                if (b.getAttribute('data-aircraft') !== currentTargetAircraft) {
-                    b.className = "w-full text-left bg-slate-50/50 border border-slate-100 text-slate-300 px-4 py-3 rounded-xl text-xs opacity-40 cursor-not-allowed min-h-[44px]";
-                }
-            }
-            
-            const nextBtn = document.getElementById('next-btn');
-            if (currentQuestionIndex === QUESTIONS_PER_LEVEL - 1) {
-                nextBtn.textContent = "Завершить миссию уровня 🎖️";
-            } else {
-                nextBtn.textContent = "Далее на взлет ⚡";
-            }
-            
             currentQuestionIndex++;
             updateGlobalUIElements();
+
+            const nextBtn = document.getElementById('next-btn');
+            nextBtn.textContent = currentQuestionIndex >= QUESTIONS_PER_LEVEL ? "Завершить уровень 🎖️" : "Далее ⚡";
             nextBtn.classList.remove('hidden');
         }
 
-        function revealRightAnswer(buttons) {
-            for (let b of buttons) {
-                if (b.getAttribute('data-aircraft') === currentTargetAircraft) {
-                    b.className = "w-full text-left bg-emerald-50 border border-emerald-300 text-emerald-700 px-4 py-3 rounded-xl text-xs font-bold flex justify-between items-center min-h-[44px]";
-                    b.innerHTML = `<span>${currentTargetAircraft}</span> <span class="text-[10px] font-bold text-emerald-500">цель</span>`;
-                }
-            }
+        function timeoutTrigger() {
+            hasAnswered = true; streak = 0;
+            playSound('error');
+            document.getElementById('image-wrapper').classList.add('shake-active');
+            setTimeout(() => document.getElementById('image-wrapper').classList.remove('shake-active'), 400);
+
+            const allBtns = document.getElementById('options-container').getElementsByTagName('button');
+            highlightCorrect(allBtns);
+            currentQuestionIndex++;
+            updateGlobalUIElements();
+            document.getElementById('next-btn').classList.remove('hidden');
         }
 
-        function updateRankTitle() {
-            let rank = "Курсант";
-            if (globalLevel >= 3) rank = "Второй пилот 🌤️";
-            if (globalLevel >= 7) rank = "Капитан ВС 🧑‍✈️";
-            if (globalLevel >= 15) rank = "Пилот-испытатель ⚡";
-            if (globalLevel >= 30) rank = "Маршал Авиации 👑";
-            document.getElementById('rank-badge').textContent = rank;
+        function highlightCorrect(btns) {
+            for (let b of btns) {
+                if (b.getAttribute('data-target') === currentTargetAircraft) {
+                    b.className = "w-full text-left bg-gradient-to-r from-emerald-50 to-teal-50/60 border-2 border-emerald-400 text-emerald-800 px-4 py-3.5 rounded-2xl text-xs font-extrabold flex justify-between items-center min-h-[48px] shadow-sm";
+                    b.innerHTML = `<span>${currentTargetAircraft}</span> <span class="text-[10px] bg-emerald-500 text-white px-1.5 py-0.5 rounded-md">верный ответ</span>`;
+                } else {
+                    b.className = "w-full text-left bg-slate-100/50 opacity-25 px-4 py-3.5 rounded-2xl text-xs cursor-not-allowed min-h-[48px] border border-transparent shadow-none";
+                }
+            }
         }
 
         document.getElementById('next-btn').onclick = () => {
-            document.getElementById('plane-image').classList.add('opacity-0');
-            
             if (currentQuestionIndex >= QUESTIONS_PER_LEVEL) {
-                clearInterval(timerInterval);
-                
                 document.getElementById('congrats-level').textContent = globalLevel;
                 document.getElementById('congrats-score').textContent = score;
-                document.getElementById('congrats-subtitle').textContent = `Вы успешно распознали серию из ${QUESTIONS_PER_LEVEL} воздушных судов!`;
-                
                 showScreen('congrats-screen');
             } else {
-                loadNextSessionTarget();
+                loadNextQuestion();
             }
         };
 
         function goToNextLevel() {
             globalLevel++;
             localStorage.setItem('as_infinite_level', globalLevel);
-            updateRankTitle();
-            generateLevelPool(); 
+            currentQuestionIndex = 0;
             updateGlobalUIElements();
             showScreen('game-screen');
-            loadNextSessionTarget();
+            loadNextQuestion();
         }
 
-        function goToMenu() {
-            clearInterval(timerInterval);
-            updateGlobalUIElements();
+        function updateGlobalUIElements() {
+            document.getElementById('menu-streak').textContent = streak;
+            document.getElementById('menu-best').textContent = bestStreak;
+            document.getElementById('menu-current-level').textContent = globalLevel;
+            document.getElementById('nav-username').textContent = username || "Пилот";
+
+            document.getElementById('global-progress').style.width = `${(currentQuestionIndex / QUESTIONS_PER_LEVEL) * 100}%`;
+
+            let rank = "Курсант";
+            if (globalLevel > 3) rank = "Второй пилот 🌤️";
+            if (globalLevel > 8) rank = "Капитан ВС 🧑‍✈️";
+            document.getElementById('rank-badge').textContent = rank;
+        }
+
+        function goToMenu() { clearInterval(timerInterval); updateGlobalUIElements(); showScreen('menu-screen'); }
+        function openProfileModal() {
+            document.getElementById('profile-modal').classList.remove('hidden');
+            document.getElementById('prof-username').textContent = username || "Неизвестно";
+            document.getElementById('prof-score').textContent = score;
+            document.getElementById('prof-best').textContent = bestStreak;
+
+            let rank = "Курсант";
+            if (globalLevel > 3) rank = "Второй пилот 🌤️";
+            if (globalLevel > 8) rank = "Капитан ВС 🧑‍✈️";
+            document.getElementById('prof-rank').textContent = rank;
+        }
+        function closeProfileModal() { document.getElementById('profile-modal').classList.add('hidden'); }
+
+        function resetGlobalHistory() {
+            localStorage.clear(); globalLevel = 1; score = 0; streak = 0; bestStreak = 0; username = ""; preloadedQuestionsQueue = [];
+            closeProfileModal();
+            document.getElementById('username-modal').classList.remove('hidden');
             showScreen('menu-screen');
         }
 
-        document.getElementById('lifeline-5050').onclick = function() {
-            if (used5050 || hasAnswered) return;
-            used5050 = true; this.disabled = true;
-            const buttons = Array.from(document.getElementById('options-container').getElementsByTagName('button'));
-            let fakes = buttons.filter(b => b.getAttribute('data-aircraft') !== currentTargetAircraft);
-            shuffle(fakes).slice(0, 2).forEach(b => {
-                b.className = "w-full text-left bg-slate-50/20 border border-slate-100 text-slate-200 px-4 py-3 rounded-xl text-xs opacity-20 cursor-not-allowed min-h-[44px]";
+        document.getElementById('lifeline-5050').onclick = function () {
+            if (used5050 || hasAnswered) return; used5050 = true; this.disabled = true;
+            const btns = Array.from(document.getElementById('options-container').getElementsByTagName('button'));
+            let wrong = btns.filter(b => b.getAttribute('data-target') !== currentTargetAircraft);
+            shuffle(wrong).slice(0, 2).forEach(b => {
+                b.className = "w-full text-left bg-slate-100/50 opacity-20 px-4 py-3.5 rounded-2xl text-xs cursor-not-allowed min-h-[48px] border border-transparent";
                 b.onclick = null;
             });
         };
 
-        document.getElementById('lifeline-time').onclick = function() {
-            if (usedTime || hasAnswered) return;
-            usedTime = true; this.disabled = true;
-            timeLeft += 10; updateTimerBar();
-        };
-
-        function openProfileModal() {
-            updateRankTitle();
-            document.getElementById('prof-rank').textContent = document.getElementById('rank-badge').textContent;
-            document.getElementById('prof-score').textContent = score;
-            document.getElementById('prof-best').textContent = bestStreak;
-            
-            document.getElementById('prof-ratio').textContent = `Уровень ${globalLevel} (Шаг ${Math.min(currentQuestionIndex, QUESTIONS_PER_LEVEL)}/${QUESTIONS_PER_LEVEL})`;
-            const pct = (Math.min(currentQuestionIndex, QUESTIONS_PER_LEVEL) / QUESTIONS_PER_LEVEL) * 100;
-            document.getElementById('prof-progress-bar').style.width = `${pct}%`;
-            
-            document.getElementById('profile-modal').classList.remove('hidden');
-        }
-
-        function closeProfileModal() {
-            document.getElementById('profile-modal').classList.add('hidden');
-        }
-
-        function resetGlobalHistory() {
-            localStorage.clear();
-            globalLevel = 1;
-            score = 0;
-            streak = 0;
-            bestStreak = 0;
-            excludedPlanes = [];
-            generateLevelPool();
-            closeProfileModal();
-            updateGlobalUIElements();
-            updateRankTitle();
-            showScreen('menu-screen');
-        }
-
-        window.onload = () => {
-            if (currentLevelPool.length === 0) {
-                generateLevelPool();
-            }
-            updateGlobalUIElements();
-            updateRankTitle();
-            showScreen('menu-screen');
+        document.getElementById('lifeline-time').onclick = function () {
+            if (usedTime || hasAnswered) return; usedTime = true; this.disabled = true;
+            timeLeft += 10; updateTimerBarUI();
         };
     </script>
 </body>
+
 </html>
